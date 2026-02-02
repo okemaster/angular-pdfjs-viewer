@@ -6,6 +6,7 @@ demo/bower_components/
 
 # Build artifacts
 dist/
+target/
 
 # Logs
 npm-debug.log*
