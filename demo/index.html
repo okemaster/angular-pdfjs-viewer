@@ -5,12 +5,27 @@
         <title>Angular PDF.js demo</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <script src="bower_components/pdf.js-viewer/pdf.js"></script>
-        <link rel="stylesheet" href="bower_components/pdf.js-viewer/viewer.css">
+        <script type="module">
+          import * as pdfjsLib from '/vendor/pdfjs-build/pdf.mjs';
+          window.pdfjsLib = pdfjsLib;
+        </script>
+        <script type="module">
+          import { PDFViewerApplicationOptions as AppOptions, webViewerLoad } from '/vendor/pdfjs-viewer/viewer.mjs';
+          AppOptions.set('workerSrc', '/vendor/pdfjs-build/pdf.worker.mjs');
+          AppOptions.set('cMapUrl', '/vendor/cmaps/');
+          AppOptions.set('standardFontDataUrl', '/vendor/standard_fonts/');
+          AppOptions.set('disablePreferences', true);
+          AppOptions.set('enableAltText', false);
+          AppOptions.set('enableAltTextModelDownload', false);
+          AppOptions.set('enableUpdatedAddImage', false);
+          AppOptions.set('annotationEditorMode', -1);
+          window.webViewerLoad = webViewerLoad;
+        </script>
+        <link rel="stylesheet" href="/vendor/pdfjs-viewer/viewer.css">
 
-        <script src="/bower_components/angular/angular.js"></script>
-        <script src="/angular-pdfjs-viewer.js"></script>
-        <script src="app.js"></script>
+        <script src="/node_modules/angular/angular.js" defer></script>
+        <script src="/dist/angular-pdfjs-viewer.js" defer></script>
+        <script src="/demo/app.js" defer></script>
 
         <style>
           html, body {
@@ -27,6 +42,10 @@
         </style>
     </head>
     <body>
+        <div style="padding: 10px; background: #eee;">
+            <button ng-click="switchPdf('demo/example.pdf')">Load example.pdf</button>
+            <span>Current: {{ pdf.src }}</span>
+        </div>
         <div class='some-pdf-container'>
             <!-- Example of loading pdf from URL string. Note that this must be an interpolation string -->
             <pdfjs-viewer src="{{ pdf.src }}"></pdfjs-viewer>

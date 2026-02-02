@@ -1,11 +1,26 @@
 angular.module('app', ['pdfjsViewer']);
 
+angular.module('app').config(['pdfjsViewerConfigProvider', function(pdfjsViewerConfigProvider) {
+    pdfjsViewerConfigProvider.setWorkerSrc('/vendor/pdfjs-build/pdf.worker.mjs');
+    pdfjsViewerConfigProvider.setCmapDir('/vendor/cmaps/');
+    pdfjsViewerConfigProvider.setImageDir('/vendor/standard_fonts/');
+}]);
+
 angular.module('app').controller('AppCtrl', function ($scope, $http, $timeout) {
-    var url = 'example.pdf';
+    var url = 'demo/example.pdf';
 
     $scope.pdf = {
         src: url,  // get pdf source from a URL that points to a pdf
         data: null // get pdf source from raw data of a pdf
+    };
+
+    $scope.switchPdf = function (newUrl) {
+        $scope.pdf.src = newUrl;
+        getPdfAsArrayBuffer(newUrl).then(function (response) {
+            $scope.pdf.data = new Uint8Array(response.data);
+        }, function (err) {
+            console.log('failed to get pdf as binary:', err);
+        });
     };
 
     getPdfAsArrayBuffer(url).then(function (response) {

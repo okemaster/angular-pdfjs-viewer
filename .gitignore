@@ -1,5 +1,28 @@
-bin/
+# Dependencies
 node_modules/
 bower_components/
 demo/node_modules/
 demo/bower_components/
+
+# Build artifacts
+dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Lock files (optional, but untracked in this project)
+package-lock.json
+demo/package-lock.json

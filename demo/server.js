@@ -5,17 +5,16 @@ var server = require('http').Server(app);
 var path = require('path');
 
 app.use(cors());
-app.use(express.static(__dirname));
 
-app.get('/angular-pdfjs-viewer.js', function(req, res) {
-    res.sendFile(path.resolve(__dirname + '/../dist/angular-pdfjs-viewer.js'));
-});
+// Serve static files from the project root
+var rootPath = path.resolve(__dirname + '/..');
+app.use(express.static(rootPath));
 
+// Specifically serve index.html for the root path
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
 
-server.listen(8080, function () {
-    console.log('Server is listening on localhost:8080');
+server.listen(48080, function () {
+    console.log('Server is listening on localhost:48080');
 });
-

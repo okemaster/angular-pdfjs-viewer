@@ -10,6 +10,34 @@ issues.
 
 ![viewer-example](https://cloud.githubusercontent.com/assets/5793511/24605022/6dd5abee-1867-11e7-881a-0d68dc7c77f3.png)
 
+### Modern PDF.js (v4+ / ESM) support
+If you are using a modern version of PDF.js (v4.0 or newer) which is distributed as ESM (`.mjs` files), you need to ensure that `pdfjsLib` is available on the `window` object for the directive to configure it.
+
+You can do this by using a `<script type="module">`:
+
+```html
+<script type="module">
+  import * as pdfjsLib from 'path/to/pdf.mjs';
+  import { AppOptions } from 'path/to/viewer.mjs';
+  
+  window.pdfjsLib = pdfjsLib;
+  
+  // Optional: configure workerSrc and other options directly on AppOptions
+  AppOptions.set('workerSrc', 'path/to/pdf.worker.mjs');
+  AppOptions.set('cMapUrl', 'path/to/cmaps/');
+  AppOptions.set('standardFontDataUrl', 'path/to/standard_fonts/');
+</script>
+<script src="path/to/viewer.mjs" type="module"></script>
+```
+
+Alternatively, you can still use the `pdfjsViewerConfigProvider` in your Angular config block, and the directive will try to set these options on `AppOptions` if it's available.
+
+```javascript
+angular.module('app').config(function(pdfjsViewerConfigProvider) {
+  pdfjsViewerConfigProvider.setWorkerSrc("path/to/pdf.worker.mjs");
+});
+```
+
 ## Installation
      npm install angular-pdfjs-viewer --save
 
@@ -147,7 +175,7 @@ The `<pdfjs-viewer>` directive automatically expands to the height and width of 
 If no parent container is given the html `body` will be used. Height and width are required to properly display the contents of the pdf.
 
 ## Demo
-You can test out a [demo](https://github.com/legalthings/angular-pdfjs-viewer/tree/master/demo) of this directive.
+You can test out a [demo](https://github.com/okemaster/angular-pdfjs-viewer/tree/master/demo) of this directive.
 You must run the node server first due to CORS. First make sure the dependencies are installed.
 
     cd demo

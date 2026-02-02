@@ -2,11 +2,11 @@ module.exports = function (grunt) {
   'use strict';
 
   var escapeContent = function(content, quoteChar) {
+    content = content.replace(/\r?\n$/, '');
     var bsRegexp = new RegExp('\\\\', 'g');
     var quoteRegexp = new RegExp('\\' + quoteChar, 'g');
-    var trimRegexp = new RegExp('\\s*\\+\\s*\\n' + quoteChar + '$');
     var nlReplace = '\\n' + quoteChar + ' +\n' + quoteChar;
-    return '\'' + content.replace(bsRegexp, '\\\\').replace(quoteRegexp, '\\' + quoteChar).replace(/\r?\n/g, nlReplace).replace(trimRegexp, '') + '\'';
+    return '\'' + content.replace(bsRegexp, '\\\\').replace(quoteRegexp, '\\' + quoteChar).replace(/\r?\n/g, nlReplace) + '\'';
   };
 
   // Project configuration.
@@ -16,13 +16,12 @@ module.exports = function (grunt) {
         options: {
           patterns: [
             {
-              match: /templateUrl:.*/,
-              replacement: function () {
-              	var content = grunt.file.read('vendor/pdf.js-viewer/viewer.html');
-              	return 'template: ' + escapeContent(content, '\'') + ',';
-              }
-            },
-            {
+                          match: /templateUrl:.*/,
+                          replacement: function () {
+                            var content = grunt.file.read('vendor/pdfjs-viewer/viewer-fragment.html');
+                            return 'template: ' + escapeContent(content, '\'') + ',';
+                          }
+                        },            {
               match: /=== get current script file ===[\w\W]+======/,
               replacement: ''
             }

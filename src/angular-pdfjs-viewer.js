@@ -45,30 +45,58 @@
     });
     
     module.run(['pdfjsViewerConfig', function(pdfjsViewerConfig) {
+        var PDFJS = window.PDFJS || window.pdfjsLib;
+        var AppOptions = window.PDFViewerApplicationOptions;
+
         if (pdfjsViewerConfig.workerSrc) {
-            PDFJS.workerSrc = pdfjsViewerConfig.workerSrc;
+            if (AppOptions && typeof AppOptions.set === 'function') {
+                AppOptions.set('workerSrc', pdfjsViewerConfig.workerSrc);
+            } else if (PDFJS) {
+                try {
+                    if (PDFJS.GlobalWorkerOptions) PDFJS.GlobalWorkerOptions.workerSrc = pdfjsViewerConfig.workerSrc;
+                    else PDFJS.workerSrc = pdfjsViewerConfig.workerSrc;
+                } catch (e) {}
+            }
         }
 
         if (pdfjsViewerConfig.cmapDir) {
-            PDFJS.cMapUrl = pdfjsViewerConfig.cmapDir;
+            if (AppOptions && typeof AppOptions.set === 'function') {
+                AppOptions.set('cMapUrl', pdfjsViewerConfig.cmapDir);
+            } else if (PDFJS) {
+                try { PDFJS.cMapUrl = pdfjsViewerConfig.cmapDir; } catch (e) {}
+            }
         }
 
         if (pdfjsViewerConfig.imageDir) {
-            PDFJS.imageResourcesPath = pdfjsViewerConfig.imageDir;
+            if (AppOptions && typeof AppOptions.set === 'function') {
+                AppOptions.set('standardFontDataUrl', pdfjsViewerConfig.imageDir);
+            } else if (PDFJS) {
+                try { PDFJS.imageResourcesPath = pdfjsViewerConfig.imageDir; } catch (e) {}
+            }
         }
         
         if (pdfjsViewerConfig.disableWorker) {
-            PDFJS.disableWorker = true;
+            if (AppOptions && typeof AppOptions.set === 'function') {
+                AppOptions.set('disableWorker', true);
+            } else if (PDFJS) {
+                try { PDFJS.disableWorker = true; } catch (e) {}
+            }
         }
 
         if (pdfjsViewerConfig.verbosity !== null) {
             var level = pdfjsViewerConfig.verbosity;
-            if (typeof level === 'string') level = PDFJS.VERBOSITY_LEVELS[level];
-            PDFJS.verbosity = pdfjsViewerConfig.verbosity;
+            if (AppOptions && typeof AppOptions.set === 'function') {
+                AppOptions.set('verbosity', level);
+            } else if (PDFJS) {
+                try {
+                    if (typeof level === 'string' && PDFJS.VERBOSITY_LEVELS) level = PDFJS.VERBOSITY_LEVELS[level];
+                    PDFJS.verbosity = level;
+                } catch (e) {}
+            }
         }
     }]);
     
-    module.directive('pdfjsViewer', ['$interval', function ($interval) {
+    module.directive('pdfjsViewer', ['$interval', '$timeout', function ($interval, $timeout) {
         return {
             templateUrl: file.folder + '../../pdf.js-viewer/viewer.html',
             restrict: 'E',
@@ -86,12 +114,22 @@
                 var loaded = {};
                 var numLoaded = 0;
 
-                if (!window.PDFJS) {
-                    return console.warn("PDFJS is not set! Make sure that pdf.js is loaded before angular-pdfjs-viewer.js is loaded.");
+                var PDFJS = window.PDFJS || window.pdfjsLib;
+                if (!PDFJS && !window.PDFViewerApplication) {
+                    return console.warn("PDFJS is not set! Make sure that pdf.js is loaded before angular-pdfjs-viewer.js is loaded. If you are using ESM, please set window.pdfjsLib = pdfjsLib;");
                 }
 
                 // initialize the pdf viewer with (with empty source)
-                window.PDFJS.webViewerLoad("");
+                var initPoller = $interval(function() {
+                    if (document.getElementById('outerContainer')) {
+                        $interval.cancel(initPoller);
+                        
+                        var loadFunc = window.webViewerLoad || (PDFJS && PDFJS.webViewerLoad);
+                        if (typeof loadFunc === 'function' && (!window.PDFViewerApplication || !window.PDFViewerApplication.initialized)) {
+                            loadFunc("");
+                        }
+                    }
+                }, 100);
 
                 function onPdfInit() {
                     initialised = true;
@@ -121,8 +159,6 @@
                             numLoaded = 0;
                             $scope.scale = pdfViewer.currentScale;
                         }
-                    } else {
-                        console.warn("PDFViewerApplication.pdfViewer is not set");
                     }
 
                     var pages = document.querySelectorAll('.page');
@@ -160,11 +196,17 @@
                     var src = values[0];
                     var data = values[1];
 
-                    if (!src && !data) {
+                    if ((!src || src === "") && !data) {
                         return;
                     }
 
-                    window.PDFViewerApplication.open(src || data);
+                    if (window.PDFViewerApplication && typeof window.PDFViewerApplication.open === 'function') {
+                        var openArgs = {};
+                        if (src) openArgs.url = src;
+                        if (data) openArgs.data = data;
+                        
+                        window.PDFViewerApplication.open(openArgs);
+                    }
                 });
 
                 // watch other attributes
